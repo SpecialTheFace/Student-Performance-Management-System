@@ -3,7 +3,8 @@ const Mock = require ( 'mockjs' )
 Mock.mock ( '/myapi/student' , 'get' , {
   code : '0' ,
   message : '' ,
-  'data|200-300' : [ {
+  'data|5' : [ {
+    'id|+1':0,
     'Name' : '@cname' ,
     'DateOfBirth' : '@date("1990-01-01", "2005-12-31")' ,
     'Gender|1' : [ '男' , '女' ] ,
