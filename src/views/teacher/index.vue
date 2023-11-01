@@ -120,7 +120,6 @@ export default {
     } ,
     // 确认编辑
     async handelEnter () {
-      console.log ( this.form );
       const { data : res } = await axios.put ( `http://localhost:8080/api/teacher/${ this.form.TeacherID }` , this.form )
       await this.fetchData ();
       Message.success ( res.msg )

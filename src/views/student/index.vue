@@ -1,134 +1,151 @@
 <template>
-  <div class="studentContainer">
+  <div class="app-container">
     <el-table
-      :data="tableData"
-      stripe
-      style="width: 100%">
-      <el-table-column
-        prop="Name"
-        label="姓名"
-        align="center"
-      >
+      v-loading="listLoading"
+      :data="list"
+      element-loading-text="Loading"
+      border
+      fit
+      highlight-current-row
+    >
+      <el-table-column align="center" label="姓名" prop="Name">
       </el-table-column>
-      <el-table-column
-        prop="DateOfBirth"
-        label="出生日期"
-        align="center"
-      >
+      <el-table-column label="出生日期" prop="DateOfBirth" align="center">
       </el-table-column>
-      <el-table-column
-        prop="Gender"
-        label="性别"
-        align="center"
-      >
+      <el-table-column label="性别" prop="Gender" align="center">
       </el-table-column>
-      <el-table-column
-        prop="Address"
-        label="住址"
-        align="center"
-      >
+      <el-table-column label="住址" align="center" prop="Address">
       </el-table-column>
-      <el-table-column
-        prop="PhoneNumber"
-        label="联系电话"
-        align="center"
-      >
+      <el-table-column label="联系电话" align="center" prop="PhoneNumber">
       </el-table-column>
-      <el-table-column
-        prop="Email"
-        label="邮件"
-        align="center"
-      >
+      <el-table-column class-name="status-col" label="邮件" align="center" prop="Email">
       </el-table-column>
-      <el-table-column
-        prop="AdmissionDate"
-        label="入学日期"
-        align="center"
-      >
+      <el-table-column label="入学日期" prop="AdmissionDate" align="center">
       </el-table-column>
       <el-table-column label="操作" align="center">
-        <template scope="scope">
+        <template slot-scope="scope">
           <el-button
             size="mini"
             type="success"
-            @click="handleEdit(scope)"
+            @click="handelEdit(scope.$index, scope.row)"
           >编辑
           </el-button>
-          <el-button
-            size="mini"
-            type="danger"
-          >删除
-          </el-button>
+          <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='不用了'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确定删除吗？"
+            @onConfirm="handelDelete(scope.row)"
+          >
+            <el-button slot="reference" type="danger" size="mini">删除</el-button>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
-    <!--弹出层-->
-    <Dialog
-      :visible="dialogFormVisible"
-      :Name="Name"
-      :DateOfBirth="DateOfBirth"
-      :Gender="Gender"
-      :Address="Address"
-      :PhoneNumber="PhoneNumber"
-      :Email="Email"
-      :AdmissionDate="AdmissionDate"
-      :id="id"
-      @changeVisible="changeVisible"></Dialog>
+    <el-dialog title="信息编辑" :visible.sync="dialogFormVisible">
+      <el-form :model="form">
+        <el-form-item label="姓名" :label-width="formLabelWidth">
+          <el-input v-model="form.Name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="出生日期" :label-width="formLabelWidth">
+          <el-input v-model="form.DateOfBirth" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="性别" :label-width="formLabelWidth">
+          <el-input v-model="form.Gender" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="住址" :label-width="formLabelWidth">
+          <el-input v-model="form.Address" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="联系电话" :label-width="formLabelWidth">
+          <el-input v-model="form.PhoneNumber" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="邮件" :label-width="formLabelWidth">
+          <el-input v-model="form.Email" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="入学日期" :label-width="formLabelWidth">
+          <el-input v-model="form.AdmissionDate" autocomplete="off"></el-input>
+        </el-form-item>
+
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="handelEnter">确 定</el-button>
+      </div>
+    </el-dialog>
   </div>
-
-
 </template>
 
 <script>
+// import service from "@/utils/request";
 import axios from "axios";
-import Dialog from "@/views/student/dialog/index.vue";
+import { Message } from "element-ui";
 
 export default {
   name : 'Student' ,
-  components : { Dialog } ,
+  filters : {
+    statusFilter ( status ) {
+      const statusMap = {
+        published : 'success' ,
+        draft : 'gray' ,
+        deleted : 'danger'
+      }
+      return statusMap[ status ]
+    }
+  } ,
   data () {
     return {
-      // 表格数据源
-      tableData : null ,
+      list : null ,
+      listLoading : true ,
       dialogFormVisible : false ,
-      Name : '' ,
-      DateOfBirth : '' ,
-      Gender : '' ,
-      Address : '' ,
-      PhoneNumber : '' ,
-      Email : '' ,
-      AdmissionDate : '' ,
-      id : ''
+      form : {
+        Name : '' ,
+        DateOfBirth : '' ,
+        Gender : '' ,
+        Address : '' ,
+        PhoneNumber : '' ,
+        Email : '' ,
+        AdmissionDate : '' ,
+        StudentID : ''
+      } ,
+      formLabelWidth : '120px'
     }
   } ,
   created () {
-    this.renderData ();
-
+    this.fetchData ()
   } ,
   methods : {
-    handleEdit ( scope ) {
+    async fetchData () {
+      const { data : res } = await axios.get ( 'http://localhost:8080/api/student' );
+      this.list = res.data;
+      this.listLoading = false;
+    } ,
+    // 开始编辑
+    handelEdit ( index , info ) {
+      this.form.StudentID = info.StudentID;
+      this.form.Name = info.Name;
+      this.form.Gender = info.Gender;
+      this.form.Address = info.Address;
+      this.form.PhoneNumber = info.PhoneNumber;
+      this.form.DateOfBirth = info.DateOfBirth;
+      this.form.Email = info.Email;
+      this.form.AdmissionDate = info.AdmissionDate;
       this.dialogFormVisible = true;
-      const { Name , DateOfBirth , Gender , Address , PhoneNumber , Email , AdmissionDate , id } = scope.row;
-      this.Name = Name;
-      this.DateOfBirth = DateOfBirth;
-      this.Gender = Gender;
-      this.Address = Address;
-      this.PhoneNumber = PhoneNumber;
-      this.Email = Email;
-      this.AdmissionDate = AdmissionDate;
-      this.id = id;
+    } ,
+    // 确认编辑
+    async handelEnter () {
+      const { data : res } = await axios.put ( `http://localhost:8080/api/student/${ this.form.StudentID }` , this.form )
+      await this.fetchData ();
+      Message.success ( res.msg )
+      this.dialogFormVisible = false;
+    } ,
+    // 删除数据
+    async handelDelete ( info ) {
+      const { data : res } = await axios.delete ( `http://localhost:8080/api/student/${ info.StudentID }` );
+      await this.fetchData ();
+      Message.success ( res.msg );
+    } ,
 
-    } ,
-    changeVisible ( data , options , peopleId ) {
-      console.log ( "子组件传过来的数据" , data , options , peopleId )
-      this.dialogFormVisible = data;
-    } ,
-    renderData () {
-      // 请求数据并进行渲染
-      axios.get ( 'http://localhost:8080/api/student' ).then ( res => res.data ).then ( res => {
-        this.tableData = res.data
-      } )
-    }
-  }
+  } ,
 }
 </script>

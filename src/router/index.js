@@ -92,6 +92,26 @@ export const constantRoutes = [
       meta : { title : '课程' , icon : 'dashboard' }
     } ]
   } ,
+  {
+    path : '/addInfo' ,
+    component : Layout ,
+    redirect : '/addInfo/AddTeacher' ,
+    meta : { title : '添加数据' , icon : 'el-icon-s-help' } ,
+    children : [
+      {
+        path : 'AddTeacher' ,
+        name : 'AddTeacher' ,
+        component : () => import('@/views/addInfo/index.vue') ,
+        meta : { title : '添加教师' , icon : 'dashboard' }
+      } ,
+      {
+        path : 'AddStudent' ,
+        name : 'AddStudent' ,
+        component : () => import('@/views/addInfo/AddStudent.vue') ,
+        meta : { title : '添加学生' , icon : 'dashboard' }
+      } ,
+    ]
+  } ,
 
   {
     path : 'external-link' ,
