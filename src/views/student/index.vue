@@ -102,10 +102,7 @@ export default {
     }
   } ,
   created () {
-    axios.get ( '/myapi/student' ).then ( res => res.data ).then ( res => {
-      this.tableData = res.data
-    } )
-
+    this.renderData ();
 
   } ,
   methods : {
@@ -125,6 +122,12 @@ export default {
     changeVisible ( data , options , peopleId ) {
       console.log ( "子组件传过来的数据" , data , options , peopleId )
       this.dialogFormVisible = data;
+    } ,
+    renderData () {
+      // 请求数据并进行渲染
+      axios.get ( 'http://localhost:8080/api/student' ).then ( res => res.data ).then ( res => {
+        this.tableData = res.data
+      } )
     }
   }
 }
